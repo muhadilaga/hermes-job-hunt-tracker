@@ -5,14 +5,20 @@ PowerShell, run from the folder that contains `hermes-job-hunt-tracker`.
 
 ## 1. Install
 
+Install from the Git repo (a local-path install is not supported, and
+copying the folder into `~\.hermes\plugins` does not register the plugin):
+
 ```powershell
-Copy-Item -Recurse .\hermes-job-hunt-tracker $env:USERPROFILE\.hermes\plugins\job-hunt-tracker
+hermes plugins install https://github.com/muhadilaga/hermes-job-hunt-tracker.git --enable
 ```
+
+Expected: the plugin lands in
+`%LOCALAPPDATA%\hermes\plugins\job-hunt-tracker` and is enabled.
 
 ## 2. Validate (the same check catalog CI runs)
 
 ```powershell
-hermes plugins validate $env:USERPROFILE\.hermes\plugins\job-hunt-tracker --install-deps
+hermes plugins validate $env:LOCALAPPDATA\hermes\plugins\job-hunt-tracker --install-deps
 ```
 
 Expected: validation passes with no errors. The "declared tools" check
@@ -35,8 +41,15 @@ hermes plugins enable job-hunt-tracker
 hermes plugins list
 ```
 
-Expected: the list shows `job-hunt-tracker`. Then start Hermes and run
-`/plugins` in chat — it should list `job-hunt-tracker v0.1.0 (6 tools)`.
+Expected: the list shows `job-hunt-tracker`. Confirm it is registered
+and enabled:
+
+```powershell
+hermes plugins list --plain --no-bundled
+```
+
+Expected: a line `enabled git 0.1.0 job-hunt-tracker`. (There is no
+`/plugins` chat command in Hermes v0.23.0.)
 
 If the plugin does not appear, run with discovery logging:
 
@@ -48,6 +61,11 @@ $env:HERMES_PLUGINS_DEBUG=1; hermes plugins list
 
 Ask Hermes these, in order. Each line shows what should happen.
 
+If the agent answers with raw Python instead of calling a tool, ask it
+explicitly, e.g. "Panggil tool log_application dari plugin
+job-hunt-tracker ...". The tools are exposed to the agent, but it does
+not always pick them unprompted.
+
 ### a. Log one application
 
 > Catat lamaran ke PT Phincon, Bootcamp Software Engineer, via JobStreet, Jakarta.
@@ -55,7 +73,7 @@ Ask Hermes these, in order. Each line shows what should happen.
 Expected: Hermes calls `log_application` and replies that it was logged,
 with status Terkirim, today's date, and a follow-up date 7 days out.
 The store file
-`%USERPROFILE%\.hermes\plugin-data\job-hunt-tracker\applications.json`
+`%LOCALAPPDATA%\hermes\plugin-data\job-hunt-tracker\applications.json`
 now contains one entry.
 
 ### b. Check the duplicate
@@ -65,7 +83,9 @@ now contains one entry.
 Expected: Hermes calls `check_duplicate` and answers that it was already
 logged (with the send date). Try logging the same application again —
 `log_application` must refuse with an "Already logged" error, not a
-second entry.
+second entry. (In practice the agent may call `check_duplicate` first
+and refuse to call `log_application` at all. Either way the assertion
+is the same: no second entry is created.)
 
 ### c. List follow-ups due
 

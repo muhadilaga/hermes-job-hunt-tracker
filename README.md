@@ -29,17 +29,18 @@ Examples (as the agent would call them):
 
 ## Install (Windows)
 
-Copy this folder into the Hermes plugins directory, then validate it:
+Install from the Git repo (a local-path install is not supported, and
+copying the folder into `~\.hermes\plugins` does not register the plugin):
 
 ```powershell
-Copy-Item -Recurse .\hermes-job-hunt-tracker $env:USERPROFILE\.hermes\plugins\job-hunt-tracker
-hermes plugins validate $env:USERPROFILE\.hermes\plugins\job-hunt-tracker --install-deps
+hermes plugins install https://github.com/muhadilaga/hermes-job-hunt-tracker.git --enable
+hermes plugins validate $env:LOCALAPPDATA\hermes\plugins\job-hunt-tracker --install-deps
 hermes plugins doctor job-hunt-tracker --ci
-hermes plugins enable job-hunt-tracker
 ```
 
-Then start Hermes and check `/plugins` — it should list
-`job-hunt-tracker v0.1.0 (6 tools)`. Full manual test script:
+Confirm it is registered and enabled with
+`hermes plugins list --plain --no-bundled` — it should show
+`enabled git 0.1.0 job-hunt-tracker`. Full manual test script:
 see `TESTING.md`.
 
 Notes:
@@ -47,7 +48,7 @@ Notes:
 - Plugins are opt-in: `hermes plugins enable job-hunt-tracker` is
   required before the tools appear.
 - The log lives at
-  `%USERPROFILE%\.hermes\plugin-data\job-hunt-tracker\applications.json`.
+  `%LOCALAPPDATA%\hermes\plugin-data\job-hunt-tracker\applications.json`.
   It is plain JSON — you can read or back it up by hand. Never edit it
   while Hermes is running.
 - Stdlib only, Python 3.14 compatible, zero third-party dependencies.
