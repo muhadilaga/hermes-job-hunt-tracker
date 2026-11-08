@@ -1,0 +1,11 @@
+name: job-hunt-tracker
+version: 0.1.0
+description: Log job applications, check for duplicates before applying, and track follow-ups — a job-hunt tracker for Hermes.
+author: Muhammad Adilaga
+provides_tools:
+  - log_application
+  - list_applications
+  - check_duplicate
+  - update_status
+  - followups_due
+  - application_stats
