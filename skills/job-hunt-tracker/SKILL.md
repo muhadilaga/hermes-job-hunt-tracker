@@ -12,29 +12,28 @@ human-readable JSON, so it survives plugin updates.
 
 ## When to use it
 
-- The user says an application was sent, or asks to record one → `log_application`.
-- The user asks about a new lead, or whether they already applied → `check_duplicate` first, before anything is logged or sent.
-- The user asks what they applied to, or wants a review → `list_applications`.
-- A reply arrives (interview invite, rejection, offer) → `update_status`.
-- The user asks what to follow up on → `followups_due`.
-- The user asks for an overview of the hunt → `application_stats`.
+- The user says an application was sent, or asks to record one → `job_log_application`.
+- The user asks about a new lead, or whether they already applied → `job_check_duplicate` first, before anything is logged or sent.
+- The user asks what they applied to, or wants a review → `job_list_applications`.
+- A reply arrives (interview invite, rejection, offer) → `job_update_status`.
+- The user asks what to follow up on → `job_followups_due`.
+- The user asks for an overview of the hunt → `job_application_stats`.
 
 ## The workflow
 
-1. **Dedupe first.** Before logging or sending, call `check_duplicate`
+1. **Dedupe first.** Before logging or sending, call `job_check_duplicate`
    with the company and position. Matching is case-insensitive on
    `company || position`. If it returns `duplicate: true`, stop and tell
    the user — never apply twice to the same role.
-2. **Log what was sent.** Call `log_application` with the facts only:
+2. **Log what was sent.** Call `job_log_application` with the facts only:
    company, position, channel (LinkedIn, Glints, JobStreet, Email,
    Indeed, Dealls, Company Website, ...), location, and date sent.
    The follow-up date defaults to 7 days after the send date.
-3. **Follow up.** `followups_due` lists what is due within the next
+3. **Follow up.** `job_followups_due` lists what is due within the next
    7 days or already overdue, earliest first. Rejected and accepted
    applications are excluded automatically.
-4. **Keep statuses honest.** Update with `update_status` when something
-   changes. Valid statuses: Terkirim, Dalam Proses, Ditolak, Interview,
-   Diterima.
+4. **Keep statuses honest.** Update with `job_update_status` when something
+   changes. Valid statuses: Sent, In Progress, Rejected, Interview, Accepted.
 
 ## Honesty rules — never break these
 

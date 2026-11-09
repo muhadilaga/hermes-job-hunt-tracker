@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 _TOOLSET = "job_hunt_tracker"
 
 _TOOLS = (
-    ("log_application", schemas.LOG_APPLICATION, tools.log_application),
-    ("list_applications", schemas.LIST_APPLICATIONS, tools.list_applications),
-    ("check_duplicate", schemas.CHECK_DUPLICATE, tools.check_duplicate),
-    ("update_status", schemas.UPDATE_STATUS, tools.update_status),
-    ("followups_due", schemas.FOLLOWUPS_DUE, tools.followups_due),
-    ("application_stats", schemas.APPLICATION_STATS, tools.application_stats),
+    ("job_log_application", schemas.LOG_APPLICATION, tools.job_log_application),
+    ("job_list_applications", schemas.LIST_APPLICATIONS, tools.job_list_applications),
+    ("job_check_duplicate", schemas.CHECK_DUPLICATE, tools.job_check_duplicate),
+    ("job_update_status", schemas.UPDATE_STATUS, tools.job_update_status),
+    ("job_followups_due", schemas.FOLLOWUPS_DUE, tools.job_followups_due),
+    ("job_application_stats", schemas.APPLICATION_STATS, tools.job_application_stats),
 )
 
 

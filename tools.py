@@ -19,8 +19,17 @@ from pathlib import Path
 
 _PLUGIN_NAME = "job-hunt-tracker"
 _STORE_FILE = "applications.json"
-_VALID_STATUSES = ("Terkirim", "Dalam Proses", "Ditolak", "Interview", "Diterima")
-_TERMINAL_STATUSES = ("Ditolak", "Diterima")
+_VALID_STATUSES = ("Sent", "In Progress", "Rejected", "Interview", "Accepted")
+_TERMINAL_STATUSES = ("Rejected", "Accepted")
+
+# Indonesian words accepted as aliases for the English canonical values
+# (stores written before English became canonical). Keys are lowercased.
+_STATUS_ALIASES = {
+    "terkirim": "Sent",
+    "dalam proses": "In Progress",
+    "ditolak": "Rejected",
+    "diterima": "Accepted",
+}
 _DEFAULT_FOLLOWUP_DAYS = 7
 
 _LOCK = threading.Lock()
@@ -81,9 +90,9 @@ def _load_store():
         return [], note
     if isinstance(data, dict) and isinstance(data.get("applications"), list):
         apps = [a for a in data["applications"] if isinstance(a, dict)]
-        return apps, None
+        return _migrate_statuses(apps), None
     if isinstance(data, list):
-        return [a for a in data if isinstance(a, dict)], None
+        return _migrate_statuses([a for a in data if isinstance(a, dict)]), None
     return [], "Previous store had an unexpected format; starting with an empty log."
 
 
@@ -129,14 +138,37 @@ def _parse_date(value, field: str) -> date:
         raise ValueError(f"{field} must be a YYYY-MM-DD date (got {value!r})")
 
 
+def _migrate_statuses(apps):
+    """Map old Indonesian statuses in loaded records to English canonical.
+
+    Stores written before English became canonical keep working: their
+    statuses are translated in memory on load (the file itself is only
+    rewritten on the next save).
+    """
+    for app in apps:
+        status = app.get("status")
+        if isinstance(status, str):
+            mapped = _STATUS_ALIASES.get(status.strip().lower())
+            if mapped is not None:
+                app["status"] = mapped
+    return apps
+
+
 def _canonical_status(value) -> str:
-    """Match a status case-insensitively, return the canonical spelling."""
+    """Match a status case-insensitively, return the canonical spelling.
+
+    English values are canonical; the old Indonesian words are still
+    accepted as aliases (case-insensitive) for backwards compatibility.
+    """
     if not isinstance(value, str):
         raise ValueError(f"status must be one of: {', '.join(_VALID_STATUSES)}")
     cleaned = value.strip()
     for valid in _VALID_STATUSES:
         if cleaned.lower() == valid.lower():
             return valid
+    alias = _STATUS_ALIASES.get(cleaned.lower())
+    if alias is not None:
+        return alias
     raise ValueError(
         f"Unknown status {value!r}; must be one of: {', '.join(_VALID_STATUSES)}"
     )
@@ -164,7 +196,7 @@ def _safe(fn):
 
 
 @_safe
-def log_application(args: dict, **kwargs) -> str:
+def job_log_application(args: dict, **kwargs) -> str:
     """Log one job application. Rejects exact company||position duplicates."""
     company = (args.get("company") or "").strip()
     position = (args.get("position") or "").strip()
@@ -173,7 +205,7 @@ def log_application(args: dict, **kwargs) -> str:
     if not position:
         return _err("position is required")
 
-    status = _canonical_status(args.get("status") or "Terkirim")
+    status = _canonical_status(args.get("status") or "Sent")
     date_sent = _parse_date(args.get("date"), "date") if args.get("date") else date.today()
     if args.get("follow_up_date"):
         follow_up = _parse_date(args.get("follow_up_date"), "follow_up_date")
@@ -216,7 +248,7 @@ def log_application(args: dict, **kwargs) -> str:
 
 
 @_safe
-def list_applications(args: dict, **kwargs) -> str:
+def job_list_applications(args: dict, **kwargs) -> str:
     """List logged applications, newest first. Optional status/channel filters."""
     status = args.get("status")
     channel = args.get("channel")
@@ -239,7 +271,7 @@ def list_applications(args: dict, **kwargs) -> str:
 
 
 @_safe
-def check_duplicate(args: dict, **kwargs) -> str:
+def job_check_duplicate(args: dict, **kwargs) -> str:
     """Check whether a company||position was already logged."""
     company = (args.get("company") or "").strip()
     position = (args.get("position") or "").strip()
@@ -269,7 +301,7 @@ def check_duplicate(args: dict, **kwargs) -> str:
 
 
 @_safe
-def update_status(args: dict, **kwargs) -> str:
+def job_update_status(args: dict, **kwargs) -> str:
     """Update the status of a logged application."""
     company = (args.get("company") or "").strip()
     position = (args.get("position") or "").strip()
@@ -285,7 +317,7 @@ def update_status(args: dict, **kwargs) -> str:
     entry = _find(apps, company, position)
     if entry is None:
         return _err(
-            f"Not found: {company} — {position}. Log it first with log_application."
+            f"Not found: {company} — {position}. Log it first with job_log_application."
         )
     old_status = entry.get("status")
     entry["status"] = new_status
@@ -303,10 +335,10 @@ def update_status(args: dict, **kwargs) -> str:
 
 
 @_safe
-def followups_due(args: dict, **kwargs) -> str:
+def job_followups_due(args: dict, **kwargs) -> str:
     """Applications whose follow-up date is due within N days or overdue.
 
-    Terminal statuses (Ditolak, Diterima) are excluded — they need no
+    Terminal statuses (Rejected, Accepted) are excluded — they need no
     follow-up. Results are sorted by follow-up date, earliest first.
     """
     raw_days = args.get("within_days", _DEFAULT_FOLLOWUP_DAYS)
@@ -345,7 +377,7 @@ def followups_due(args: dict, **kwargs) -> str:
 
 
 @_safe
-def application_stats(args: dict, **kwargs) -> str:
+def job_application_stats(args: dict, **kwargs) -> str:
     """Counts by status and by channel, plus the total."""
     apps, note = _load_store()
     by_status = {status: 0 for status in _VALID_STATUSES}

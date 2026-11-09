@@ -62,7 +62,7 @@ $env:HERMES_PLUGINS_DEBUG=1; hermes plugins list
 Ask Hermes these, in order. Each line shows what should happen.
 
 If the agent answers with raw Python instead of calling a tool, ask it
-explicitly, e.g. "Panggil tool log_application dari plugin
+explicitly, e.g. "Panggil tool job_log_application dari plugin
 job-hunt-tracker ...". The tools are exposed to the agent, but it does
 not always pick them unprompted.
 
@@ -70,8 +70,8 @@ not always pick them unprompted.
 
 > Catat lamaran ke PT Phincon, Bootcamp Software Engineer, via JobStreet, Jakarta.
 
-Expected: Hermes calls `log_application` and replies that it was logged,
-with status Terkirim, today's date, and a follow-up date 7 days out.
+Expected: Hermes calls `job_log_application` and replies that it was logged,
+with status Sent, today's date, and a follow-up date 7 days out.
 The store file
 `%LOCALAPPDATA%\hermes\plugin-data\job-hunt-tracker\applications.json`
 now contains one entry.
@@ -80,31 +80,31 @@ now contains one entry.
 
 > Udah pernah lamar ke PT Phincon buat Bootcamp Software Engineer belum?
 
-Expected: Hermes calls `check_duplicate` and answers that it was already
+Expected: Hermes calls `job_check_duplicate` and answers that it was already
 logged (with the send date). Try logging the same application again —
-`log_application` must refuse with an "Already logged" error, not a
-second entry. (In practice the agent may call `check_duplicate` first
-and refuse to call `log_application` at all. Either way the assertion
+`job_log_application` must refuse with an "Already logged" error, not a
+second entry. (In practice the agent may call `job_check_duplicate` first
+and refuse to call `job_log_application` at all. Either way the assertion
 is the same: no second entry is created.)
 
 ### c. List follow-ups due
 
 > Lamaran apa yang harus di-follow up minggu ini?
 
-Expected: Hermes calls `followups_due` and lists the Phincon entry
+Expected: Hermes calls `job_followups_due` and lists the Phincon entry
 (follow-up date within 7 days).
 
 ### d. Update the status
 
 > Ubah status lamaran Phincon jadi Interview.
 
-Expected: Hermes calls `update_status` and confirms the change from
-Terkirim to Interview. `followups_due` afterwards still lists it
+Expected: Hermes calls `job_update_status` and confirms the change from
+Sent to Interview. `job_followups_due` afterwards still lists it
 (Interview is not a terminal status).
 
 ## 6. Failure cases worth checking
 
 - Log an application with no company → clear "company is required" error.
-- `update_status` for a company never logged → "Not found" error telling
+- `job_update_status` for a company never logged → "Not found" error telling
   the user to log it first.
-- `followups_due` with `within_days` 0 → only overdue and due-today items.
+- `job_followups_due` with `within_days` 0 → only overdue and due-today items.

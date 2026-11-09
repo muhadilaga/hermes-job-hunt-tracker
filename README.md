@@ -13,19 +13,19 @@ JSON file in the plugin data directory, so it survives plugin updates.
 
 | Tool | What it does |
 | --- | --- |
-| `log_application` | Log a sent application. Rejects exact `company \|\| position` duplicates. Follow-up date defaults to 7 days after the send date. |
-| `list_applications` | List logged applications, newest first. Optional `status` / `channel` filters. |
-| `check_duplicate` | Check whether a company + position was already logged. Call before applying. |
-| `update_status` | Change the status of a logged application (Terkirim, Dalam Proses, Ditolak, Interview, Diterima). |
-| `followups_due` | Applications whose follow-up date is due within N days (default 7) or overdue, earliest first. Rejected/accepted are excluded. |
-| `application_stats` | Total logged, counts by status and by channel. |
+| `job_log_application` | Log a sent application. Rejects exact `company \|\| position` duplicates. Follow-up date defaults to 7 days after the send date. |
+| `job_list_applications` | List logged applications, newest first. Optional `status` / `channel` filters. |
+| `job_check_duplicate` | Check whether a company + position was already logged. Call before applying. |
+| `job_update_status` | Change the status of a logged application (Sent, In Progress, Rejected, Interview, Accepted). |
+| `job_followups_due` | Applications whose follow-up date is due within N days (default 7) or overdue, earliest first. Rejected/accepted are excluded. |
+| `job_application_stats` | Total logged, counts by status and by channel. |
 
 Examples (as the agent would call them):
 
-- `log_application` — company "PT Phincon", position "Bootcamp Software Engineer", channel "JobStreet", location "Jakarta"
-- `check_duplicate` — company "PT Phincon", position "Bootcamp Software Engineer"
-- `followups_due` — within_days 7
-- `update_status` — company "PT Phincon", position "Bootcamp Software Engineer", new_status "Interview"
+- `job_log_application` — company "PT Phincon", position "Bootcamp Software Engineer", channel "JobStreet", location "Jakarta"
+- `job_check_duplicate` — company "PT Phincon", position "Bootcamp Software Engineer"
+- `job_followups_due` — within_days 7
+- `job_update_status` — company "PT Phincon", position "Bootcamp Software Engineer", new_status "Interview"
 
 ## Install (Windows)
 
